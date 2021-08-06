@@ -19,11 +19,8 @@ param hyperVSubnetPrefix string = '10.0.1.0/24'
 @description('Azure VMs Subnet Name')
 param azureVMsSubnetName string = 'Azure-VMs'
 
-@description('Hyper-V Host Network Interface 1 Name, attached to NAT Subnet')
+@description('Hyper-V Host Network Interface 1 Name, attached to HyperV Subnet')
 param HostNetworkInterface1Name string = 'HVHOSTNIC1'
-
-@description('Hyper-V Host Network Interface 2 Name, attached to Hyper-V LAN Subnet')
-param HostNetworkInterface2Name string = 'HVHOSTNIC2'
 
 @description('Name of Hyper-V Host Virtual Machine, Maximum of 15 characters, use letters and numbers only.')
 @maxLength(15)
@@ -66,8 +63,7 @@ param HostAdminUsername string
 param HostAdminPassword string
 
 var hyperVSubnetNSGName = '${hyperVSubnetName}NSG'
-var azureVMsSubnetNSGName = '${azureVMsSubnetName}NSG'
-var DSCInstallWindowsFeaturesUri = uri(dsc/hypervinstall.zip)
+var DSCInstallWindowsFeaturesUri = 'https://github.com/SMBrook/Hyper-V/blob/main/DSC/hypervinstall.zip?raw=true'
 
 resource publicIp 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
   name: HostPublicIPAddressName
@@ -85,12 +81,6 @@ resource publicIp 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
 
 resource hyperVNsg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
   name: hyperVSubnetNSGName
-  location: location
-  properties: {}
-}
-
-resource azureVmsSubnet 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
-  name: azureVMsSubnetNSGName
   location: location
   properties: {}
 }
@@ -122,7 +112,7 @@ module createNic1 './nic.bicep' = {
   name: 'createNic1'
   params: {
     location: location
-    nicName: HostNetworkInterface2Name
+    nicName: HostNetworkInterface1Name
     enableIPForwarding: true
     subnetId: '${vnet.id}/subnets/${hyperVSubnetName}'
   }
